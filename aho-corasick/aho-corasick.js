@@ -1,5 +1,6 @@
-console.clear();
+const LinkedList = require("../utils/linkedList");
 
+console.clear();
 class CustomNode {
   child = new Map();
   suffixLink = null; //TODO: implement suffixLink
@@ -27,7 +28,41 @@ function buildTrie(root, patterns) {
   }
 }
 
+function buildFailureLinks(root) {
+  root.suffixLink = root;
+  var queue = new LinkedList();
+
+  // for first level, set failure link to root node
+  root.child.forEach((node) => {
+    queue.insertLast(node);
+    return (node.suffixLink = root);
+  });
+
+  console.log(queue.size);
+  while (queue.size > 0) {
+    currentState = queue.head.value;
+    queue.removeAt(0);
+    console.log(currentState);
+
+    for (let [key] of currentState.child.keys()) {
+      let currentChild = currentState.child.get(key);
+      let tmp = currentState.suffixLink;
+
+      while (!tmp.child.has(key) && tmp !== root) {
+        tmp = tmp.suffixLink;
+      }
+      if (tmp.child.has(key)) {
+        currentChild.suffixLink = tmp.child.get(key);
+      } else {
+        currentChild.suffixLink = root;
+      }
+      queue.insertLast(currentChild);
+    }
+  }
+}
+
 var rootNode = new CustomNode();
 buildTrie(rootNode, ["ACC", "ATC", "CAT", "A", "C", "XYZ"]);
+buildFailureLinks(rootNode);
 console.log("\n====================\n");
 console.log(rootNode);
